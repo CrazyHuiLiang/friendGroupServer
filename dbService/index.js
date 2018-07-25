@@ -15,7 +15,13 @@ function insertUser (account, password, callback) {
   pool.query(insertSql, callback)
 }
 
+// 查找我的好友列表
+function selectFriendsWithUserId(userId, callback) {
+  let selectSql = `SELECT * FROM user WHERE id IN (SELECT (friendId) FROM friend_relation WHERE userId=${userId});`
+  pool.query(selectSql, callback)
+}
 module.exports =  {
   selectUserWithAccount,
-  insertUser
+  insertUser,
+  selectFriendsWithUserId
 };
