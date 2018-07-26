@@ -103,19 +103,81 @@ router.get('/searchUserWithAccount', function(req, res, next) {
 */
 router.post('/addFriendWithUserId', function(req, res, next) {
   let userId = req.body.userId
-  dbService.selectUserWithAccount(userId, (error, results, fields) => {
+  let friendId = req.body.friendId
+  dbService.addFriendRequest(userId, friendId, (error, results, fields) => {
     if (error) throw error;
-    if (results.length > 0) {
+    res.send({
+      state: true,
+      info: '申请已发出'
+    });
+  })
+});
+/*
+  查看添加我的好友的申请
+*/
+router.get('/selectAddMyFriendRequest', function(req, res, next) {
+  let userId = req.query.userId
+  dbService.selectAddMyFriendRequest(userId, (error, results, fields) => {
+    if (error) throw error;
+    res.send({
+      state: true,
+      info: results
+    });
+  })
+});
+
+/*
+  处理添加我的好友的申请，同意/拒绝
+*/
+router.post('/updateAddFriendRequest', function(req, res, next) {
+
+  let userId = req.body.userId
+  let friendId = req.body.friendId
+  let flag = req.body.flag
+  dbService.updateAddFriendRequest(userId, friendId, flag, (error, results, fields) => {
+    if (error) throw error;
+    // 用户拒绝
+    if (flag === '2') {
       res.send({
         state: true,
-        info: results
+        info: '已拒绝好友'
       });
-    } else  {
-      res.send({
-        state: false,
-        info: '您所查找的用户不存在'
-      });
+    } else if (flag === '1') { // 同意添加好友
+      dbService.insertFriendRelation(userId, friendId, (error, results, fields) => {
+        if (error) throw error;
+
+        dbService.insertFriendRelation(friendId, userId, (error, results, fields) => {
+          if (error) throw error;
+          res.send({
+            state: true,
+            info: '添加好友成功'
+          });
+        })
+      })
     }
   })
 });
+
+
+/*
+  删除好友
+*/
+router.post('/removeFriend', function(req, res, next) {
+
+  let userId = req.body.userId
+  let friendId = req.body.friendId
+  dbService.removeFriend(userId, friendId, (error, results, fields) => {
+    if (error) throw error;
+    dbService.removeFriend(friendId, userId, (error, results, fields) => {
+      if (error) throw error;
+      res.send({
+        state: true,
+        info: '删除好友成功'
+      });
+    })
+  })
+});
+
+
+
 module.exports = router;
