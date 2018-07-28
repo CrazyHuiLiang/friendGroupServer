@@ -54,6 +54,7 @@ router.post('/register', function(req, res, next) {
     }
   })
 });
+
 /*
   登录
 */
@@ -85,7 +86,6 @@ router.post('/login', function(req, res, next) {
   })
 });
 
-
 /*
   获取好友列表
 */
@@ -99,7 +99,6 @@ router.get('/getFriends', function(req, res, next) {
     });
   })
 });
-
 
 /*
   根据用户账号查找用户
@@ -122,7 +121,6 @@ router.get('/searchUserWithAccount', function(req, res, next) {
   })
 });
 
-
 /*
   通过用户id添加好友
 */
@@ -137,6 +135,7 @@ router.post('/addFriendWithUserId', function(req, res, next) {
     });
   })
 });
+
 /*
   查看添加我的好友的申请
 */
@@ -183,7 +182,6 @@ router.post('/updateAddFriendRequest', function(req, res, next) {
   })
 });
 
-
 /*
   删除好友
 */
@@ -202,6 +200,40 @@ router.post('/removeFriend', function(req, res, next) {
     })
   })
 });
+
+/*
+  设置用户头像
+*/
+router.post('/setUserAvatar', function(req, res, next) {
+
+  let userId = req.body.userId
+  let url = req.body.url
+  dbService.setUserAvatar(userId, url, (error, results, fields) => {
+    if (error) throw error;
+    res.send({
+      state: true,
+      info: '设置成功'
+    });
+  })
+});
+
+/*
+  设置用户昵称
+*/
+router.post('/setNickname', function(req, res, next) {
+
+  let userId = req.body.userId
+  let nickname = req.body.nickname
+  dbService.setNickName(userId, nickname, (error, results, fields) => {
+    if (error) throw error;
+    res.send({
+      state: true,
+      info: '设置成功'
+    });
+  })
+});
+
+
 
 
 

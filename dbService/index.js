@@ -20,12 +20,12 @@ function selectFriendsWithUserId(userId, callback) {
   let selectSql = `SELECT * FROM user WHERE id IN (SELECT (friendId) FROM friend_relation WHERE userId=${userId});`
   pool.query(selectSql, callback)
 }
+
 // 添加用户申请
 function addFriendRequest (myUserId, friendUserId, callback) {
   let selectSql = `INSERT INTO friend_request (userId, friendId, flag, createdTime) VALUES (${myUserId}, ${friendUserId}, 0, 0);`
   pool.query(selectSql, callback)
 }
-
 
 /*
   查看添加我好友的申请
@@ -59,6 +59,22 @@ function removeFriend (userId, friendId, callback) {
   pool.query(selectSql, callback)
 }
 
+/*
+  设置用户头像
+* */
+function setUserAvatar (userId, url, callback) {
+  let selectSql = `UPDATE user SET avatar='${url}' WHERE id='${userId}';`
+  pool.query(selectSql, callback)
+}
+
+/*
+  设置用户昵称
+* */
+function setNickName (userId, nickname, callback) {
+  let selectSql = `UPDATE user SET nickname='${nickname}' WHERE id='${userId}';`
+  pool.query(selectSql, callback)
+}
+
 
 module.exports =  {
   selectUserWithAccount,
@@ -68,5 +84,7 @@ module.exports =  {
   selectAddMyFriendRequest,
   updateAddFriendRequest,
   insertFriendRelation,
-  removeFriend
+  removeFriend,
+  setUserAvatar,
+  setNickName
 };
