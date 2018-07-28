@@ -8,7 +8,12 @@ function selectUserWithAccount(account, callback) {
   let selectSql = `SELECT * FROM user WHERE account='${account}';`
   pool.query(selectSql, callback)
 }
-
+// 根据用户id查询用户信息
+function selectUserWitId(id, callback) {
+  let selectSql = `SELECT * FROM user WHERE id='${id}';`
+  pool.query(selectSql, callback)
+}
+selectUserWitId
 // 添加用户
 function insertUser (account, password, callback) {
   let insertSql = `INSERT INTO user (account, password, nickname, avatar, background, createdTime) VALUES ('${account}', '${password}', '', '', '', 0);`
@@ -74,10 +79,53 @@ function setNickName (userId, nickname, callback) {
   let selectSql = `UPDATE user SET nickname='${nickname}' WHERE id='${userId}';`
   pool.query(selectSql, callback)
 }
+/*
+  发朋友圈
+* */
+function addNew (userId, content, images, callback) {
+  let selectSql = `INSERT INTO news (userId, content, images, createdTime) VALUES (${userId}, '${content}', ${images}, 0);`
+  pool.query(selectSql, callback)
+}
+/*
+*  根据id获取朋友圈消息
+* */
+function newsWithId (id, callback) {
+  let sql = `SELECT * from news WHERE id=${id};`
+  pool.query(sql, callback)
+}
+/*
+  获取朋友圈列表
+* */
+function listFriendsGroup (userId, pageIndex, pageSize, callback) {
+  let sql = `SELECT * FROM news WHERE userId IN (SELECT friendId from friend_relation WHERE userId=${userId} ) OR userId=${userId};`
+  pool.query(sql, callback)
+}
 
+/*
+  查询是否已经点赞
+* */
+function selectPraise (userId, newsId, callback) {
+  let sql = `SELECT * FROM praise WHERE userId=${userId} AND newId=${newsId};`
+  pool.query(sql, callback)
+}
+/*
+  点赞
+* */
+function addPraise (userId, newsId, callback) {
+  let sql = `INSERT INTO praise (userId, newId, createdTime) VALUES (${userId}, ${newsId}, 0);`
+  pool.query(sql, callback)
+}
+/*
+  取消点赞
+* */
+function deletePraise (userId, newsId, callback) {
+  let sql = `DELETE FROM praise WHERE userId=${userId} AND newId=${newsId};`
+  pool.query(sql, callback)
+}
 
 module.exports =  {
   selectUserWithAccount,
+  selectUserWitId,
   insertUser,
   selectFriendsWithUserId,
   addFriendRequest,
@@ -86,5 +134,11 @@ module.exports =  {
   insertFriendRelation,
   removeFriend,
   setUserAvatar,
-  setNickName
+  setNickName,
+  addNew,
+  newsWithId,
+  listFriendsGroup,
+  selectPraise,
+  addPraise,
+  deletePraise
 };

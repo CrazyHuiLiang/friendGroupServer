@@ -233,6 +233,107 @@ router.post('/setNickname', function(req, res, next) {
   })
 });
 
+/*
+  发朋友圈
+*/
+router.post('/addNew', function(req, res, next) {
+
+  let userId = req.body.userId
+  let content = req.body.content
+  let images = JSON.stringify(req.body.images)
+  dbService.addNew(userId, content, images, (error, results, fields) => {
+    if (error) throw error;
+    dbService.newsWithId(results.insertId, (error, results, fields) => {
+      if (error) throw error;
+      let currentNews = results[0]
+      currentNews.Praise = []
+      currentNews.Comments = []
+
+      selectUserWitId(userId, results => {
+        currentNews.userInfo = results[0]
+        res.send({
+          state: true,
+          info: currentNews
+        });
+      })
+    })
+  })
+});
+// 根据userId 获取用户信息
+function selectUserWitId (userId, callback) {
+  dbService.selectUserWitId(userId, (error, results, fields) => {
+    if (error) throw error;
+    callback(results)
+  })
+}
+
+// 根据userId 获取用户信息
+function selectUserInfoForNews (news, cursor, callback) {
+  let currentNews = news[cursor]
+  selectUserWitId(currentNews.userId, results => {
+    if (results.length > 0) {
+      currentNews.userInfo = results[0]
+    }
+
+    if (cursor === news.length-1) {
+      callback(news)
+    } else {
+      selectUserInfoForNews(news, cursor+1, callback)
+    }
+  })
+}
+
+/*
+  获取朋友圈列表
+*/
+router.get('/listFriendsGroup', function (req, res, next) {
+
+  let userId = req.query.userId
+  let pageIndex = req.query.pageIndex
+  let pageSize = req.query.pageSize
+  dbService.listFriendsGroup(userId, pageIndex, pageSize, (error, results, fields) => {
+    if (error) throw error;
+    // 朋友圈消息列表
+    let news = results
+    selectUserInfoForNews(news, 0, news => {
+      res.send({
+        state: true,
+        info: news
+      });
+    })
+  })
+});
+
+
+
+/*
+  获取朋友圈列表
+*/
+router.post('/praiseNew', function (req, res, next) {
+
+  let userId = req.body.userId
+  let newId = req.body.newId
+  dbService.selectPraise(userId, newId, (error, results, fields) => {
+    if (error) throw error;
+    if (results.length > 0) {
+      dbService.deletePraise(userId, newId, (error, results, fields) => {
+        res.send({
+          state: true,
+          info: '取消点赞成功'
+        });
+      })
+    } else {
+      dbService.addPraise(userId, newId, (error, results, fields) => {
+        res.send({
+          state: true,
+          info: '点赞成功'
+        });
+      })
+    }
+  })
+});
+
+
 
 
 
