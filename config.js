@@ -1,6 +1,7 @@
 const  path = require('path')
 
 module.exports = {
+  host: 'http://localhost:3000',
   mysql: {
     connectionLimit : 100,
     host     : 'localhost',
