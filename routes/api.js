@@ -259,29 +259,6 @@ router.post('/addNew', function(req, res, next) {
     })
   })
 });
-// 根据userId 获取用户信息
-function selectUserWitId (userId, callback) {
-  dbService.selectUserWitId(userId, (error, results, fields) => {
-    if (error) throw error;
-    callback(results)
-  })
-}
-
-// 根据userId 获取用户信息
-function selectUserInfoForNews (news, cursor, callback) {
-  let currentNews = news[cursor]
-  selectUserWitId(currentNews.userId, results => {
-    if (results.length > 0) {
-      currentNews.userInfo = results[0]
-    }
-
-    if (cursor === news.length-1) {
-      callback(news)
-    } else {
-      selectUserInfoForNews(news, cursor+1, callback)
-    }
-  })
-}
 
 /*
   获取朋友圈列表
@@ -296,18 +273,47 @@ router.get('/listFriendsGroup', function (req, res, next) {
     // 朋友圈消息列表
     let news = results
     selectUserInfoForNews(news, 0, news => {
-      res.send({
-        state: true,
-        info: news
-      });
+      selectPraiseForNews(news, 0, news => {
+        selectCommentsForNews(news, 0, news => {
+          res.send({
+            state: true,
+            info: news
+          });
+        })
+      })
     })
   })
 });
 
 
+/*
+  获取个人相册列表
+*/
+router.get('/listUserAlbum', function (req, res, next) {
+
+  let userId = req.query.userId
+  let pageIndex = req.query.pageIndex
+  let pageSize = req.query.pageSize
+  dbService.listUserAlbum(userId, pageIndex, pageSize, (error, results, fields) => {
+    if (error) throw error;
+    // 朋友圈消息列表
+    let news = results
+    selectUserInfoForNews(news, 0, news => {
+      selectPraiseForNews(news, 0, news => {
+        selectCommentsForNews(news, 0, news => {
+          res.send({
+            state: true,
+            info: news
+          });
+        })
+      })
+    })
+  })
+});
+
 
 /*
-  获取朋友圈列表
+  点赞/取消点赞
 */
 router.post('/praiseNew', function (req, res, next) {
 
@@ -333,9 +339,138 @@ router.post('/praiseNew', function (req, res, next) {
   })
 });
 
+/*
+  评论
+*/
+router.post('/addComment', function (req, res, next) {
+
+  let userId = req.body.userId
+  let newsId = req.body.newsId
+  let parentCommentId = req.body.parentCommentId
+  let comment = req.body.comment
+
+
+  dbService.addComment(userId, newsId, parentCommentId, comment, (error, results, fields) => {
+    if (error) throw error;
+    let commentId = results.insertId
+
+    getCommentWith(commentId).then(comment=> {
+      res.send({
+        state: true,
+        info: comment
+      });
+    })
+  })
+});
 
 
 
 
+// 根据userId 获取用户信息
+function selectUserWitId (userId, callback) {
+  dbService.selectUserWitId(userId, (error, results, fields) => {
+    if (error) throw error;
+    callback(results)
+  })
+}
+
+// 为朋友圈列表获取每条消息的用户信息
+function selectUserInfoForNews (news, cursor, callback) {
+  let currentNews = news[cursor]
+  selectUserWitId(currentNews.userId, results => {
+    if (results.length > 0) {
+      currentNews.userInfo = results[0]
+    }
+
+    if (cursor === news.length-1) {
+      callback(news)
+    } else {
+      selectUserInfoForNews(news, cursor+1, callback)
+    }
+  })
+}
+
+// 为朋友圈列表获取每条消息的点赞信息
+function selectPraiseForNews (news, cursor, callback) {
+  let currentNews = news[cursor]
+  dbService.selectPraiseForNews(currentNews.id, (error, results, fields) => {
+    if (error) throw error;
+
+    currentNews.praises = results
+
+    if (cursor === news.length-1) {
+      callback(news)
+    } else {
+      selectPraiseForNews(news, cursor+1, callback)
+    }
+  })
+}
+
+// 通过评论id获取info
+function getCommentWith (commentId) {
+  return new Promise(resolve => {
+
+    dbService.getComment(commentId, (error, results, fields) => {
+      if (error) throw error;
+      let comment = results[0]
+
+      dbService.selectUserWitId(comment.userId, (error, results, fields) => {
+        comment.userA = results[0]
+
+        if (comment.parentCommentId && comment.parentCommentId !==0) {
+
+          dbService.getComment(comment.parentCommentId, (error, results, fields) => {
+            if (error) throw error;
+            let parentComment = results[0]
+
+            dbService.selectUserWitId(parentComment.userId, (error, results, fields) => {
+              comment.userB = results[0]
+              resolve(comment)
+            })
+          })
+
+        } else {
+          resolve(comment)
+        }
+      })
+    })
+  })
+}
+
+// 为朋友圈列表获取每条消息的评论信息
+function selectComments (comments, cursor, callback) {
+  if (comments.length === 0) {
+    callback(comments)
+    return
+  }
+
+  let currentComments = comments[cursor]
+  getCommentWith(currentComments.id).then(results => {
+    comments[cursor] = results
+
+    if (cursor === comments.length-1) {
+      callback(comments)
+    } else {
+      selectComments(comments, cursor+1, callback)
+    }
+  })
+}
+
+// 为朋友圈列表获取每条消息的评论信息
+function selectCommentsForNews (news, cursor, callback) {
+  let currentNews = news[cursor]
+  dbService.getCommentsWithNewsId(currentNews.id, (error, results, fields) => {
+    if (error) throw error;
+
+    selectComments(results, 0, comments => {
+      currentNews.comments = comments
+      if (cursor === news.length-1) {
+        callback(news)
+      } else {
+        selectCommentsForNews(news, cursor+1, callback)
+      }
+    })
+  })
+}
 
 module.exports = router;

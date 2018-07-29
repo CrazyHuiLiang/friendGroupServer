@@ -13,7 +13,6 @@ function selectUserWitId(id, callback) {
   let selectSql = `SELECT * FROM user WHERE id='${id}';`
   pool.query(selectSql, callback)
 }
-selectUserWitId
 // 添加用户
 function insertUser (account, password, callback) {
   let insertSql = `INSERT INTO user (account, password, nickname, avatar, background, createdTime) VALUES ('${account}', '${password}', '', '', '', 0);`
@@ -102,6 +101,14 @@ function listFriendsGroup (userId, pageIndex, pageSize, callback) {
 }
 
 /*
+  获取个人相册列表
+* */
+function listUserAlbum (userId, pageIndex, pageSize, callback) {
+  let sql = `SELECT * FROM news WHERE userId=${userId};`
+  pool.query(sql, callback)
+}
+
+/*
   查询是否已经点赞
 * */
 function selectPraise (userId, newsId, callback) {
@@ -123,6 +130,38 @@ function deletePraise (userId, newsId, callback) {
   pool.query(sql, callback)
 }
 
+/*
+  查询某条朋友圈的点赞
+* */
+function selectPraiseForNews (newsId, callback) {
+  let sql = `SELECT praise.id AS id, userId, newId, nickname, avatar, background FROM praise,user WHERE newId=${newsId} AND praise.userId=user.id;`
+  pool.query(sql, callback)
+}
+
+
+/*
+  点赞
+* */
+function addComment (userId, newsId, parentCommentId, comment, callback) {
+  let sql = `INSERT INTO comment (newsId, userId, comment, parentCommentId, createdTime) VALUES (${newsId}, ${userId}, '${comment}', ${parentCommentId}, 0);`
+  pool.query(sql, callback)
+}
+
+/*
+  根据newsId获取comments
+ */
+function getCommentsWithNewsId (newsId, callback) {
+  let sql = `SELECT * FROM comment WHERE newsId=${newsId};`
+  pool.query(sql, callback)
+}
+/*
+  根据commentId获取comment
+ */
+function getComment (commentId, callback) {
+  let sql = `SELECT * FROM comment WHERE id=${commentId};`
+  pool.query(sql, callback)
+}
+
 module.exports =  {
   selectUserWithAccount,
   selectUserWitId,
@@ -138,7 +177,12 @@ module.exports =  {
   addNew,
   newsWithId,
   listFriendsGroup,
+  listUserAlbum,
   selectPraise,
   addPraise,
-  deletePraise
+  deletePraise,
+  selectPraiseForNews,
+  addComment,
+  getComment,
+  getCommentsWithNewsId
 };
