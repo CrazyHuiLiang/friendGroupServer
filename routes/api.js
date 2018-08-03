@@ -157,7 +157,7 @@ router.post('/updateAddFriendRequest', function(req, res, next) {
 
   let userId = req.body.userId
   let friendId = req.body.friendId
-  let flag = req.body.flag
+  let flag = String(req.body.flag)
   dbService.updateAddFriendRequest(userId, friendId, flag, (error, results, fields) => {
     if (error) throw error;
     // 用户拒绝

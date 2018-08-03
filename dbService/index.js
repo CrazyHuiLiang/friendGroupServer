@@ -82,7 +82,7 @@ function setNickName (userId, nickname, callback) {
   发朋友圈
 * */
 function addNew (userId, content, images, callback) {
-  let selectSql = `INSERT INTO news (userId, content, images, createdTime) VALUES (${userId}, '${content}', ${images}, 0);`
+  let selectSql = `INSERT INTO news (userId, content, images, createdTime) VALUES (${userId}, '${content}', '${images}', 0);`
   pool.query(selectSql, callback)
 }
 /*
