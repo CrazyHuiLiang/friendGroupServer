@@ -43,7 +43,7 @@ function selectAddMyFriendRequest (myUserId, callback) {
   处理添加好友的申请
 * */
 function updateAddFriendRequest (userId, friendId, flag, callback) {
-  let selectSql = `UPDATE friendGroup.friend_request SET flag=${flag} WHERE userId=${userId} AND friendId=${friendId};`
+  let selectSql = `UPDATE friendGroup.friend_request SET flag=${flag} WHERE friendId=${userId} AND userId=${friendId};`
   pool.query(selectSql, callback)
 }
 
