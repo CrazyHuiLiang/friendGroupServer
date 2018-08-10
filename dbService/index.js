@@ -96,7 +96,9 @@ function newsWithId (id, callback) {
   获取朋友圈列表
 * */
 function listFriendsGroup (userId, pageIndex, pageSize, callback) {
-  let sql = `SELECT * FROM news WHERE userId IN (SELECT friendId from friend_relation WHERE userId=${userId} ) OR userId=${userId};`
+  // let sql = `SELECT * FROM news WHERE userId IN (SELECT friendId from friend_relation WHERE userId=${userId} ) OR userId=${userId} ORDER BY id DESC limit ${pageIndex*pageSize},${pageSize};`
+  let sql = `SELECT * FROM news WHERE userId IN (SELECT friendId from friend_relation WHERE userId=${userId} ) OR userId=${userId} ORDER BY id DESC;`
+  console.log(sql)
   pool.query(sql, callback)
 }
 

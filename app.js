@@ -9,10 +9,13 @@ var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api');
 var usersRouter = require('./routes/users');
 
+var bodyParser = require('body-parser');
 var app = express();
 app.use(fileUpload());
 app.use(express.static('files'));
 
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}))
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
