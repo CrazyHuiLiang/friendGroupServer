@@ -2,7 +2,28 @@ var express = require('express');
 var router = express.Router();
 let config = require('../config')
 let path = require('path')
+const fs = require('fs')
 let dbService = require('../dbService/index')
+var crypto = require('crypto');
+// 计算md5值
+function cryptPwd(password) {
+  var md5 = crypto.createHash('md5');
+  return md5.update(password).digest('hex');
+}
+// 解码base64图片上传
+function decodeBase64Image(dataString) {
+  var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+    response = {};
+
+  if (matches.length !== 3) {
+    return new Error('Invalid input string');
+  }
+
+  response.type = matches[1];
+  response.data = new Buffer(matches[2], 'base64');
+
+  return response;
+}
 
 /* GET api listing. */
 router.get('/', function(req, res, next) {
@@ -31,6 +52,31 @@ router.post('/uploadFile',  function(req, res, next) {
   });
 })
 
+
+/* 上传文件 */
+router.post('/uploadFileBase64',  function(req, res, next) {
+  const file = req.body.file
+  const filename = req.body.filename
+  if (!file)
+    return res.status(400).send('No files were uploaded.');
+
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+  // let file = req.files.file;
+  let md5 = cryptPwd(file)
+  let url = `/${md5}${path.extname(filename)}`
+  let fullPath = config.uploadFileUrl + url
+  let imageBuffer = decodeBase64Image(file);
+
+  fs.writeFile(fullPath, imageBuffer.data, {
+    encoding: 'base64'
+  }, (err) => {
+    if (err) throw err;
+    res.send({
+      state: true,
+      info: config.host + url
+    })
+  });
+})
 /*
   注册
 */
