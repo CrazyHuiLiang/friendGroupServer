@@ -287,7 +287,9 @@ router.post('/addNew', function(req, res, next) {
   let userId = req.body.userId
   let content = req.body.content
   let images = JSON.stringify(req.body.images)
-  dbService.addNew(userId, content, images, (error, results, fields) => {
+  let now = new Date()
+  let nowIntervel = Math.floor(now.getTime()/1000)
+  dbService.addNew(userId, content, images, nowIntervel, (error, results, fields) => {
     if (error) throw error;
     dbService.newsWithId(results.insertId, (error, results, fields) => {
       if (error) throw error;
@@ -318,6 +320,14 @@ router.get('/listFriendsGroup', function (req, res, next) {
     if (error) throw error;
     // 朋友圈消息列表
     let news = results
+    // 如果没有朋友圈数据，直接返回结果
+    if (news.length === 0) {
+      res.send({
+        state: true,
+        info: news
+      });
+      return
+    }
     selectUserInfoForNews(news, 0, news => {
       selectPraiseForNews(news, 0, news => {
         selectCommentsForNews(news, 0, news => {
@@ -344,6 +354,13 @@ router.get('/listUserAlbum', function (req, res, next) {
     if (error) throw error;
     // 朋友圈消息列表
     let news = results
+    if (news.length === 0) {
+      res.send({
+        state: true,
+        info: news
+      });
+      return
+    }
     selectUserInfoForNews(news, 0, news => {
       selectPraiseForNews(news, 0, news => {
         selectCommentsForNews(news, 0, news => {

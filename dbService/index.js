@@ -81,8 +81,8 @@ function setNickName (userId, nickname, callback) {
 /*
   发朋友圈
 * */
-function addNew (userId, content, images, callback) {
-  let selectSql = `INSERT INTO news (userId, content, images, createdTime) VALUES (${userId}, '${content}', '${images}', 0);`
+function addNew (userId, content, images, createTime, callback) {
+  let selectSql = `INSERT INTO news (userId, content, images, createdTime) VALUES (${userId}, '${content}', '${images}', ${createTime});`
   pool.query(selectSql, callback)
 }
 /*
