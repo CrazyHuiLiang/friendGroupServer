@@ -6,8 +6,9 @@ module.exports = {
     connectionLimit : 100,
     host     : 'localhost',
     user     : 'root',
-    password : '123456',
-    database : 'friendGroup'
+    password : '12345678',
+    database : 'friendGroup',
+    insecureAuth : true
   },
   uploadFileUrl: path.resolve(__dirname, './files')
 };

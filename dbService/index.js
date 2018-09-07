@@ -106,7 +106,7 @@ function listFriendsGroup (userId, pageIndex, pageSize, callback) {
   获取个人相册列表
 * */
 function listUserAlbum (userId, pageIndex, pageSize, callback) {
-  let sql = `SELECT * FROM news WHERE userId=${userId};`
+  let sql = `SELECT * FROM news WHERE userId=${userId} ORDER BY id DESC;`
   pool.query(sql, callback)
 }
 
